@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Facebook Video Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md fade-in">
+        <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">
+            Facebook Video Downloader
+        </h1>
+        <form id="downloadForm" class="space-y-6">
+            <div>
+                <label for="videoUrl" class="block text-base font-medium text-gray-700">
+                    Facebook Video URL
+                </label>
+                <input
+                    type="url"
+                    id="videoUrl"
+                    name="videoUrl"
+                    required
+                    class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-300 focus:ring-opacity-50 outline-none py-3 px-4"
+                    placeholder="Enter video URL here"
+                />
+            </div>
+            <button
+                type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-800 text-white font-semibold py-3 px-4 rounded transition-colors duration-300 ease-in-out focus:outline-none focus:ring focus:ring-blue-300"
+            >
+                Download Video
+            </button>
+        </form>
+        <div id="result" class="mt-6 hidden">
+            <h2 class="text-xl font-semibold mb-3 text-gray-800">Download Links:</h2>
+            <p id="videoTitle" class="text-md text-gray-600 mb-3"></p>
+            <a
+                id="sdLink"
+                href="#"
+                target="_blank"
+                class="block mb-2 bg-green-600 hover:bg-green-800 text-white font-semibold py-2 px-4 rounded text-center transition-colors duration-300 ease-in-out"
+            >
+                Download SD Quality
+            </a>
+            <a
+                id="hdLink"
+                href="#"
+                target="_blank"
+                class="block bg-green-600 hover:bg-green-800 text-white font-semibold py-2 px-4 rounded text-center transition-colors duration-300 ease-in-out"
+            >
+                Download HD Quality
+            </a>
+        </div>
+        <div id="error" class="mt-4 hidden text-red-500 text-center"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("downloadForm");
+            const resultDiv = document.getElementById("result");
+            const errorDiv = document.getElementById("error");
+            const videoTitleElement = document.getElementById("videoTitle");
+            const sdLinkElement = document.getElementById("sdLink");
+            const hdLinkElement = document.getElementById("hdLink");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const videoUrl = document.getElementById("videoUrl").value;
+
+                resultDiv.classList.add("hidden");
+                errorDiv.classList.add("hidden");
+
+                try {
+                    const response = await fetch(`/download?url=${encodeURIComponent(videoUrl)}`);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        videoTitleElement.textContent = data.title;
+                        sdLinkElement.href = data.sd_url;
+
+                        if (data.hd_url) {
+                            hdLinkElement.href = data.hd_url;
+                            hdLinkElement.classList.remove("hidden");
+                        } else {
+                            hdLinkElement.classList.add("hidden");
+                        }
+
+                        resultDiv.classList.remove("hidden");
+                    } else {
+                        throw new Error(data.error || "Failed to fetch video data");
+                    }
+                } catch (error) {
+                    errorDiv.textContent = error.message;
+                    errorDiv.classList.remove("hidden");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
